@@ -1,0 +1,163 @@
+# MCP Catalog Configuration
+# This mirrors your local setup with all 12 MCP servers
+# Based on your ~/.docker/mcp/registry.yaml
+
+version: 3
+name: custom-catalog
+displayName: Custom MCP Catalog
+
+registry:
+  # 1. Context7 - Code documentation for LLMs
+  context7:
+    description: Up-to-date code documentation for LLMs and AI code editors
+    title: Context7
+    type: server
+    image: mcp/context7:latest
+    env:
+      - name: MCP_TRANSPORT
+        value: stdio
+    tools:
+      - get-library-docs
+      - resolve-library-id
+
+  # 2. Desktop Commander - System operations
+  desktop-commander:
+    description: Desktop system operations and commands
+    title: Desktop Commander
+    type: server
+    image: mcp/desktop-commander:latest
+
+  # 3. DuckDuckGo - Web search
+  duckduckgo:
+    description: Search the web with DuckDuckGo
+    title: DuckDuckGo Search
+    type: server
+    image: mcp/duckduckgo:latest
+
+  # 4. GitHub Official - GitHub operations
+  github-official:
+    description: Official GitHub MCP server for repository operations
+    title: GitHub Official
+    type: server
+    image: mcp/github-official:latest
+    # OAuth authentication handled by gateway
+
+  # 5. Markdownify - Convert web content to markdown
+  markdownify:
+    description: Convert web pages and documents to markdown
+    title: Markdownify
+    type: server
+    image: mcp/markdownify:latest
+
+  # 6. Memory - Persistent memory for conversations
+  memory:
+    description: Persistent memory across conversations
+    title: Memory
+    type: server
+    image: mcp/memory:latest
+
+  # 7. Next.js Devtools - Next.js development tools
+  next-devtools-mcp:
+    description: Next.js development and debugging tools
+    title: Next.js Devtools
+    type: server
+    image: mcp/next-devtools-mcp:latest
+
+  # 8. Playwright - Browser automation
+  playwright:
+    description: Browser automation and testing with Playwright
+    title: Playwright
+    type: server
+    image: mcp/playwright:latest
+    tools:
+      - browser_navigate
+      - browser_click
+      - browser_screenshot
+      - browser_fill_form
+      - browser_evaluate
+
+  # 9. Puppeteer - Browser automation (alternative)
+  puppeteer:
+    description: Browser automation with Puppeteer
+    title: Puppeteer
+    type: server
+    image: mcp/puppeteer:latest
+    tools:
+      - puppeteer_navigate
+      - puppeteer_screenshot
+      - puppeteer_evaluate
+      - puppeteer_fill
+
+  # 10. Sequential Thinking - Chain-of-thought reasoning
+  sequentialthinking:
+    description: Sequential thinking and chain-of-thought reasoning
+    title: Sequential Thinking
+    type: server
+    image: mcp/sequentialthinking:latest
+
+  # 11. Supabase - Supabase database operations
+  supabase:
+    description: Supabase database operations and queries
+    title: Supabase
+    type: server
+    image: mcp/supabase:latest
+    secrets:
+      - name: supabase.url
+        env: SUPABASE_URL
+        description: Your Supabase project URL
+      - name: supabase.service_role_key
+        env: SUPABASE_SERVICE_ROLE_KEY
+        description: Your Supabase service role key
+    tools:
+      - execute_sql
+      - list_tables
+      - list_extensions
+      - list_migrations
+      - apply_migration
+      - get_logs
+      - get_advisors
+
+  # 12. YouTube Transcript - Get YouTube video transcripts
+  youtube_transcript:
+    description: Fetch transcripts from YouTube videos
+    title: YouTube Transcript
+    type: server
+    image: mcp/youtube_transcript:latest
+    tools:
+      - get_transcript
+      - get_timed_transcript
+      - get_video_info
+
+# Additional recommended servers for your use case
+  # n8n MCP (already in docker-compose, but adding reference)
+  n8n-mcp:
+    description: n8n workflow documentation and management (deployed separately)
+    title: n8n MCP Server
+    type: server
+    # Note: This runs as separate container, not in MCP Gateway
+    # Access via: http://n8n-mcp:3000/mcp
+
+  # Filesystem - For local file operations (useful for automation)
+  filesystem:
+    description: Read and write local files
+    title: Filesystem
+    type: server
+    image: mcp/filesystem:latest
+    volumes:
+      - /opt/automation:/data  # Mount your automation directory
+
+  # PostgreSQL - If you need direct DB access
+  # postgres:
+  #   description: PostgreSQL database operations
+  #   title: PostgreSQL
+  #   type: server
+  #   image: mcp/postgres:latest
+  #   secrets:
+  #     - name: postgres.connection_string
+  #       env: POSTGRES_CONNECTION_STRING
+
+# Notes for deployment:
+# 1. All images will be pulled from Docker MCP registry
+# 2. OAuth-based servers (GitHub) need authorization via gateway
+# 3. Secret-based servers need environment variables set
+# 4. The gateway will manage all container lifecycle

@@ -1,0 +1,62 @@
+# MCP Registry Configuration
+# Tracks which servers are enabled/installed
+# This matches your local ~/.docker/mcp/registry.yaml
+
+registry:
+  context7:
+    ref: ""
+    enabled: true
+
+  desktop-commander:
+    ref: ""
+    enabled: true
+
+  duckduckgo:
+    ref: ""
+    enabled: true
+
+  github-official:
+    ref: ""
+    enabled: true
+    # OAuth will be configured via gateway
+
+  markdownify:
+    ref: ""
+    enabled: true
+
+  memory:
+    ref: ""
+    enabled: true
+
+  next-devtools-mcp:
+    ref: ""
+    enabled: true
+
+  playwright:
+    ref: ""
+    enabled: true
+
+  puppeteer:
+    ref: ""
+    enabled: true
+
+  sequentialthinking:
+    ref: ""
+    enabled: true
+
+  supabase:
+    ref: ""
+    enabled: true
+    # Requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
+
+  youtube_transcript:
+    ref: ""
+    enabled: true
+
+# Additional servers for automation
+  filesystem:
+    ref: ""
+    enabled: true
+
+# Note: n8n-mcp runs as separate container (not managed by gateway)
+# It's accessed via HTTP at http://n8n-mcp:3000/mcp
