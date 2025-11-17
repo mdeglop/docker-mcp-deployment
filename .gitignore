@@ -1,0 +1,31 @@
+# Environment files with secrets
+.env
+
+# Docker volumes and data
+mcp-data/
+portainer-data/
+n8n-data/
+
+# Logs
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Backup files
+*.backup
+*.bak
+
+# Docker Compose override files (for local development)
+docker-compose.override.yml
+
+# Temporary files
+tmp/
+temp/

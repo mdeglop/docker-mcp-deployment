@@ -1,0 +1,60 @@
+# MCP Registry Configuration
+# Tracks which servers are enabled/installed
+# All servers enabled by default
+
+registry:
+  context7:
+    ref: ""
+    enabled: true
+
+  desktop-commander:
+    ref: ""
+    enabled: true
+
+  duckduckgo:
+    ref: ""
+    enabled: true
+
+  github-official:
+    ref: ""
+    enabled: true
+
+  markdownify:
+    ref: ""
+    enabled: true
+
+  memory:
+    ref: ""
+    enabled: true
+
+  next-devtools-mcp:
+    ref: ""
+    enabled: true
+
+  playwright:
+    ref: ""
+    enabled: true
+
+  puppeteer:
+    ref: ""
+    enabled: true
+
+  sequentialthinking:
+    ref: ""
+    enabled: true
+
+  supabase:
+    ref: ""
+    enabled: true
+
+  youtube_transcript:
+    ref: ""
+    enabled: true
+
+  filesystem:
+    ref: ""
+    enabled: true
+
+  n8n-mcp:
+    ref: ""
+    enabled: true

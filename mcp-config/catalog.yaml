@@ -1,0 +1,139 @@
+# MCP Catalog Configuration
+# Custom catalog for Docker MCP Gateway
+# Includes 12 standard MCP servers + n8n-mcp (stdio mode)
+
+version: 3
+name: custom-catalog
+displayName: Custom MCP Catalog
+
+registry:
+  # 1. Context7 - Code documentation for LLMs
+  context7:
+    description: Up-to-date code documentation for LLMs and AI code editors
+    title: Context7
+    type: server
+    image: mcp/context7:latest
+    env:
+      - name: MCP_TRANSPORT
+        value: stdio
+
+  # 2. Desktop Commander - System operations
+  desktop-commander:
+    description: Desktop system operations and commands
+    title: Desktop Commander
+    type: server
+    image: mcp/desktop-commander:latest
+
+  # 3. DuckDuckGo - Web search
+  duckduckgo:
+    description: Search the web with DuckDuckGo
+    title: DuckDuckGo Search
+    type: server
+    image: mcp/duckduckgo:latest
+
+  # 4. GitHub Official - GitHub operations
+  github-official:
+    description: Official GitHub MCP server for repository operations
+    title: GitHub Official
+    type: server
+    image: mcp/github-official:latest
+    secrets:
+      - name: github.token
+        env: GITHUB_TOKEN
+        description: GitHub personal access token
+
+  # 5. Markdownify - Convert web content to markdown
+  markdownify:
+    description: Convert web pages and documents to markdown
+    title: Markdownify
+    type: server
+    image: mcp/markdownify:latest
+
+  # 6. Memory - Persistent memory for conversations
+  memory:
+    description: Persistent memory across conversations
+    title: Memory
+    type: server
+    image: mcp/memory:latest
+
+  # 7. Next.js Devtools - Next.js development tools
+  next-devtools-mcp:
+    description: Next.js development and debugging tools
+    title: Next.js Devtools
+    type: server
+    image: mcp/next-devtools-mcp:latest
+
+  # 8. Playwright - Browser automation
+  playwright:
+    description: Browser automation and testing with Playwright
+    title: Playwright
+    type: server
+    image: mcp/playwright:latest
+
+  # 9. Puppeteer - Browser automation (alternative)
+  puppeteer:
+    description: Browser automation with Puppeteer
+    title: Puppeteer
+    type: server
+    image: mcp/puppeteer:latest
+
+  # 10. Sequential Thinking - Chain-of-thought reasoning
+  sequentialthinking:
+    description: Sequential thinking and chain-of-thought reasoning
+    title: Sequential Thinking
+    type: server
+    image: mcp/sequentialthinking:latest
+
+  # 11. Supabase - Supabase database operations
+  supabase:
+    description: Supabase database operations and queries
+    title: Supabase
+    type: server
+    image: mcp/supabase:latest
+    secrets:
+      - name: supabase.url
+        env: SUPABASE_URL
+        description: Your Supabase project URL
+      - name: supabase.service_role_key
+        env: SUPABASE_SERVICE_ROLE_KEY
+        description: Your Supabase service role key
+
+  # 12. YouTube Transcript - Get YouTube video transcripts
+  youtube_transcript:
+    description: Fetch transcripts from YouTube videos
+    title: YouTube Transcript
+    type: server
+    image: mcp/youtube_transcript:latest
+
+  # 13. Filesystem - For local file operations
+  filesystem:
+    description: Read and write local files
+    title: Filesystem
+    type: server
+    image: mcp/filesystem:latest
+    volumes:
+      - /root/files:/data
+
+  # 14. n8n-MCP - n8n workflow documentation and management (stdio mode)
+  n8n-mcp:
+    description: n8n workflow documentation and management (39 tools - 23 docs + 16 workflow)
+    title: n8n MCP Server
+    type: server
+    image: ghcr.io/czlonkowski/n8n-mcp:latest
+    env:
+      # Critical stdio mode configuration
+      - name: MCP_MODE
+        value: stdio
+      - name: LOG_LEVEL
+        value: error
+      - name: DISABLE_CONSOLE_OUTPUT
+        value: "true"
+      # n8n connection
+      - name: N8N_API_URL
+        value: http://n8n:5678
+    secrets:
+      - name: n8n.api_key
+        env: N8N_API_KEY
+        description: n8n API key for workflow management
+    # This server needs access to the n8n container
+    # The gateway will handle this through Docker networking

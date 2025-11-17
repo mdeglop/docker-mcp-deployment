@@ -1,0 +1,189 @@
+version: '3.8'
+
+# MCP Gateway + n8n-MCP deployment for Hostinger VPS
+# ** CONNECTS TO YOUR EXISTING N8N INSTALLATION **
+# Ubuntu 24.04 Headless Server
+# 2 CPU cores, 8GB RAM, 100GB disk
+
+services:
+  # Docker MCP Gateway (runs in container for headless servers)
+  mcp-gateway:
+    image: ghcr.io/docker/mcp-gateway:latest
+    container_name: mcp-gateway
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8811:8811"  # Only expose to localhost (Caddy will reverse proxy)
+    volumes:
+      # Mount Docker socket so gateway can manage containers
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Configuration and catalog storage
+      - ./mcp-config:/root/.docker/mcp
+      - ./mcp-data:/data
+    environment:
+      # Gateway configuration
+      - MCP_GATEWAY_PORT=8811
+      - MCP_GATEWAY_TRANSPORT=sse  # Server-Sent Events for remote access
+      - MCP_GATEWAY_HOST=0.0.0.0
+      # Logging
+      - LOG_LEVEL=info
+    networks:
+      - mcp-network
+      - existing-n8n-network  # Connect to your existing n8n network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8811/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # n8n-MCP Server (for workflow documentation & management)
+  n8n-mcp:
+    image: ghcr.io/czlonkowski/n8n-mcp:latest
+    container_name: n8n-mcp
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"  # Only expose to localhost
+    environment:
+      # Core configuration
+      - MCP_MODE=http
+      - USE_FIXED_HTTP=true
+      - NODE_ENV=production
+
+      # Authentication (CHANGE THESE!)
+      - AUTH_TOKEN=${N8N_MCP_AUTH_TOKEN}
+      - MCP_AUTH_TOKEN=${N8N_MCP_AUTH_TOKEN}
+
+      # Connect to your EXISTING n8n instance
+      # Option 1: If n8n is on same network with container name
+      - N8N_API_URL=${N8N_API_URL:-http://n8n:5678}
+
+      # Option 2: If n8n is on host machine
+      # - N8N_API_URL=http://host.docker.internal:5678
+
+      # Option 3: If n8n has a domain/IP
+      # - N8N_API_URL=https://your-n8n-domain.com
+
+      - N8N_API_KEY=${N8N_API_KEY}
+
+      # Networking
+      - HOST=0.0.0.0
+      - PORT=3000
+      - TRUST_PROXY=1
+      - BASE_URL=https://${DOMAIN}/n8n-mcp
+
+      # Security (v2.16.3+)
+      - AUTH_RATE_LIMIT_WINDOW=900000  # 15 minutes
+      - AUTH_RATE_LIMIT_MAX=50  # Allow more for development
+      - WEBHOOK_SECURITY_MODE=moderate  # Allows localhost n8n
+
+      # Logging
+      - LOG_LEVEL=info
+    volumes:
+      - n8n-mcp-data:/app/data
+    networks:
+      - mcp-network
+      - existing-n8n-network  # Connect to your existing n8n network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.2'
+          memory: 256M
+
+  # Caddy Reverse Proxy (automatic HTTPS)
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"  # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    environment:
+      - DOMAIN=${DOMAIN}
+    networks:
+      - mcp-network
+      - existing-n8n-network  # Can also proxy your existing n8n if needed
+    depends_on:
+      - mcp-gateway
+      - n8n-mcp
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  # Portainer (optional but recommended for container management)
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - portainer-data:/data
+    networks:
+      - mcp-network
+      - existing-n8n-network  # Can manage your existing n8n too
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
+networks:
+  mcp-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+  # Connect to your existing n8n Docker network
+  existing-n8n-network:
+    external: true
+    name: ${N8N_NETWORK_NAME:-n8n_default}
+    # Common n8n network names:
+    # - n8n_default (if using docker compose in n8n folder)
+    # - bridge (if using --network bridge)
+    # - host (if using --network host)
+    # Run: docker network ls | grep n8n
+    # to find your n8n network name
+
+volumes:
+  n8n-mcp-data:
+    driver: local
+  caddy-data:
+    driver: local
+  caddy-config:
+    driver: local
+  portainer-data:
+    driver: local
+
+# Resource Summary (WITHOUT n8n since you already have it):
+# CPU: Up to 2.75 cores (within your 2 core limit)
+# RAM: Up to 3.25GB (leaves 5GB for your existing n8n)
+# Disk: ~3-5GB for images + your data
