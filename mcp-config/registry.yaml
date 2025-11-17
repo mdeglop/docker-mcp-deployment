@@ -1,6 +1,6 @@
 # MCP Registry Configuration
 # Tracks which servers are enabled/installed
-# This matches your local ~/.docker/mcp/registry.yaml
+# All servers enabled by default
 
 registry:
   context7:
@@ -18,7 +18,6 @@ registry:
   github-official:
     ref: ""
     enabled: true
-    # OAuth will be configured via gateway
 
   markdownify:
     ref: ""
@@ -47,16 +46,15 @@ registry:
   supabase:
     ref: ""
     enabled: true
-    # Requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
 
   youtube_transcript:
     ref: ""
     enabled: true
 
-# Additional servers for automation
   filesystem:
     ref: ""
     enabled: true
 
-# Note: n8n-mcp runs as separate container (not managed by gateway)
-# It's accessed via HTTP at http://n8n-mcp:3000/mcp
+  n8n-mcp:
+    ref: ""
+    enabled: true

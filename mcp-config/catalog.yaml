@@ -1,6 +1,6 @@
 # MCP Catalog Configuration
-# This mirrors your local setup with all 12 MCP servers
-# Based on your ~/.docker/mcp/registry.yaml
+# Custom catalog for Docker MCP Gateway
+# Includes 12 standard MCP servers + n8n-mcp (stdio mode)
 
 version: 3
 name: custom-catalog
@@ -16,9 +16,6 @@ registry:
     env:
       - name: MCP_TRANSPORT
         value: stdio
-    tools:
-      - get-library-docs
-      - resolve-library-id
 
   # 2. Desktop Commander - System operations
   desktop-commander:
@@ -40,7 +37,10 @@ registry:
     title: GitHub Official
     type: server
     image: mcp/github-official:latest
-    # OAuth authentication handled by gateway
+    secrets:
+      - name: github.token
+        env: GITHUB_TOKEN
+        description: GitHub personal access token
 
   # 5. Markdownify - Convert web content to markdown
   markdownify:
@@ -69,12 +69,6 @@ registry:
     title: Playwright
     type: server
     image: mcp/playwright:latest
-    tools:
-      - browser_navigate
-      - browser_click
-      - browser_screenshot
-      - browser_fill_form
-      - browser_evaluate
 
   # 9. Puppeteer - Browser automation (alternative)
   puppeteer:
@@ -82,11 +76,6 @@ registry:
     title: Puppeteer
     type: server
     image: mcp/puppeteer:latest
-    tools:
-      - puppeteer_navigate
-      - puppeteer_screenshot
-      - puppeteer_evaluate
-      - puppeteer_fill
 
   # 10. Sequential Thinking - Chain-of-thought reasoning
   sequentialthinking:
@@ -108,14 +97,6 @@ registry:
       - name: supabase.service_role_key
         env: SUPABASE_SERVICE_ROLE_KEY
         description: Your Supabase service role key
-    tools:
-      - execute_sql
-      - list_tables
-      - list_extensions
-      - list_migrations
-      - apply_migration
-      - get_logs
-      - get_advisors
 
   # 12. YouTube Transcript - Get YouTube video transcripts
   youtube_transcript:
@@ -123,41 +104,36 @@ registry:
     title: YouTube Transcript
     type: server
     image: mcp/youtube_transcript:latest
-    tools:
-      - get_transcript
-      - get_timed_transcript
-      - get_video_info
 
-# Additional recommended servers for your use case
-  # n8n MCP (already in docker-compose, but adding reference)
-  n8n-mcp:
-    description: n8n workflow documentation and management (deployed separately)
-    title: n8n MCP Server
-    type: server
-    # Note: This runs as separate container, not in MCP Gateway
-    # Access via: http://n8n-mcp:3000/mcp
-
-  # Filesystem - For local file operations (useful for automation)
+  # 13. Filesystem - For local file operations
   filesystem:
     description: Read and write local files
     title: Filesystem
     type: server
     image: mcp/filesystem:latest
     volumes:
-      - /opt/automation:/data  # Mount your automation directory
+      - /root/files:/data
 
-  # PostgreSQL - If you need direct DB access
-  # postgres:
-  #   description: PostgreSQL database operations
-  #   title: PostgreSQL
-  #   type: server
-  #   image: mcp/postgres:latest
-  #   secrets:
-  #     - name: postgres.connection_string
-  #       env: POSTGRES_CONNECTION_STRING
-
-# Notes for deployment:
-# 1. All images will be pulled from Docker MCP registry
-# 2. OAuth-based servers (GitHub) need authorization via gateway
-# 3. Secret-based servers need environment variables set
-# 4. The gateway will manage all container lifecycle
+  # 14. n8n-MCP - n8n workflow documentation and management (stdio mode)
+  n8n-mcp:
+    description: n8n workflow documentation and management (39 tools - 23 docs + 16 workflow)
+    title: n8n MCP Server
+    type: server
+    image: ghcr.io/czlonkowski/n8n-mcp:latest
+    env:
+      # Critical stdio mode configuration
+      - name: MCP_MODE
+        value: stdio
+      - name: LOG_LEVEL
+        value: error
+      - name: DISABLE_CONSOLE_OUTPUT
+        value: "true"
+      # n8n connection
+      - name: N8N_API_URL
+        value: http://n8n:5678
+    secrets:
+      - name: n8n.api_key
+        env: N8N_API_KEY
+        description: n8n API key for workflow management
+    # This server needs access to the n8n container
+    # The gateway will handle this through Docker networking

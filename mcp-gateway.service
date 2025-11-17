@@ -1,0 +1,30 @@
+[Unit]
+Description=Docker MCP Gateway
+After=docker.service n8n.service
+Requires=docker.service
+Wants=n8n.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/root/.docker/cli-plugins/docker-mcp gateway run \
+  --transport=sse \
+  --port=8811 \
+  --catalog=custom-catalog.yaml \
+  --registry=registry.yaml \
+  --secrets=/root/.docker/mcp/secrets.env \
+  --enable-all-servers \
+  --log-calls \
+  --verbose
+
+Restart=always
+RestartSec=10
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mcp-gateway
+
+[Install]
+WantedBy=multi-user.target
