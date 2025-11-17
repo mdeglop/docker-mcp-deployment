@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "remote-mcp-gateway": {
+      "type": "sse",
+      "url": "https://mcp.srv1077490.hstgr.cloud/sse",
+      "headers": {
+        "Authorization": "Bearer q4yuztnx1gjqjrq1iq6vissc00z3h4jaow0x4jl4xgls4zlyb5"
+      }
+    }
+  }
+}
